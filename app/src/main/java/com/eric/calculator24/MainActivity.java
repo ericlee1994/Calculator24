@@ -2,8 +2,13 @@ package com.eric.calculator24;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.InputFilter;
+import android.text.Spanned;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,24 +21,42 @@ public class MainActivity extends AppCompatActivity {
 
     private int[] array = new int[4];
 
-    private Button button;
+    private Button btn_search;
+    private Button btn_clear;
+    private EditText editText1;
+    private EditText editText2;
+    private EditText editText3;
+    private EditText editText4;
+    private TextView textView;
+
+
     private boolean hasAdd = false;
     private String myString;
+    private ArrayList<String> allList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        button = findViewById(R.id.btn_calculate);
+        btn_search = findViewById(R.id.btn_calculate);
+        btn_clear = findViewById(R.id.btn_clear);
+        editText1 = findViewById(R.id.num1);
+        editText2 = findViewById(R.id.num2);
+        editText3 = findViewById(R.id.num3);
+        editText4 = findViewById(R.id.num4);
+        textView  = findViewById(R.id.txt_content);
 
+        editText1.setInputType(EditorInfo.TYPE_CLASS_PHONE);
+        editText2.setInputType(EditorInfo.TYPE_CLASS_PHONE);
+        editText3.setInputType(EditorInfo.TYPE_CLASS_PHONE);
+        editText4.setInputType(EditorInfo.TYPE_CLASS_PHONE);
 
-        array[0] = 1;
-        array[1] = 2;
-        array[2] = 3;
-        array[3] = 4;
+        btn_search.setOnClickListener(onClickListener);
+        btn_clear.setOnClickListener(onClickListener);
 
+        setEditTextInhibitInputSpace();
 
-        button.setOnClickListener(onClickListener);
+        allList = new ArrayList<>();
 
     }
 
@@ -42,50 +65,95 @@ public class MainActivity extends AppCompatActivity {
     View.OnClickListener onClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            try {
-                Set<String> set = caculate(new int[]{3, 4, 1, 3}, 24);
-                printlnResultSet(set);
-            }catch (Exception e) {
+            switch (v.getId()) {
+                case R.id.btn_calculate:
+                    try {
+                        int a = Integer.parseInt(editText1.getText().toString());
+                        int b = Integer.parseInt(editText2.getText().toString());
+                        int c = Integer.parseInt(editText3.getText().toString());
+                        int d = Integer.parseInt(editText4.getText().toString());
+
+                        Set<String> set = caculate(new int[]{a, b, c, d}, 24);
+                        printlnResultSet(set);
+                    } catch (Exception e) {
+                        textView.setText("计算不出来了");
+                    }
+                    break;
+                case R.id.btn_clear:
+                    editText1.setText("");
+                    editText2.setText("");
+                    editText3.setText("");
+                    editText4.setText("");
+                    editText1.setFocusable(true);
+                    editText1.setFocusableInTouchMode(true);
+                    editText1.requestFocus();
+                    textView.setText("");
+                    allList.clear();
+                    break;
+                default:
+                    break;
+            }
 
         }
+
+    };
+
+    public void setEditTextInhibitInputSpace(){
+        InputFilter filter=new InputFilter() {
+            @Override
+            public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+                if(source.equals(" "))
+                    return "";
+                else return null;
+            }
+        };
+        editText1.setFilters(new InputFilter[]{filter});
+        editText2.setFilters(new InputFilter[]{filter});
+        editText3.setFilters(new InputFilter[]{filter});
+        editText4.setFilters(new InputFilter[]{filter});
     }
-
-
-
-
 
     private void printlnResultSet(Collection<String> resultSet) {
         for (String str : resultSet) {
-//            System.out.println("str:" + str);
+            System.out.println("str:" + str);
+            if ((str.charAt(2) == "+".charAt(0) || str.charAt(2) == "-".charAt(0)) && (str.charAt(6) == "*".charAt(0) || str.charAt(6) == "/".charAt(0)) ){
+                StringBuilder stringBuilder = new StringBuilder(str);
+                stringBuilder.insert(0,"(");
+                stringBuilder.insert(6,")");
+                hasAdd = true;
+                myString = stringBuilder.toString();
+                System.out.println(stringBuilder.toString());
 
+                allList.add(stringBuilder.toString());
 
-                if ((str.charAt(2) == "+".charAt(0) || str.charAt(2) == "-".charAt(0)) && (str.charAt(6) == "*".charAt(0) || str.charAt(6) == "/".charAt(0)) ){
+            }
+            if (hasAdd){
+
+                if ((myString.charAt(8) == "+".charAt(0) || myString.charAt(8) == "-".charAt(0)) && (myString.charAt(12) == "*".charAt(0) || myString.charAt(12) == "/".charAt(0))){
                     StringBuilder stringBuilder = new StringBuilder(str);
                     stringBuilder.insert(0,"(");
-                    stringBuilder.insert(6,")");
-                    hasAdd = true;
-                    myString = stringBuilder.toString();
+                    stringBuilder.insert(11,")");
                     System.out.println(stringBuilder.toString());
-
+                    allList.add(stringBuilder.toString());
                 }
-                if (hasAdd){
-
-                    if ((myString.charAt(8) == "+".charAt(0) || myString.charAt(8) == "-".charAt(0)) && (myString.charAt(12) == "*".charAt(0) || myString.charAt(12) == "/".charAt(0))){
-                        StringBuilder stringBuilder = new StringBuilder(str);
-                        stringBuilder.insert(0,"(");
-                        stringBuilder.insert(11,")");
-                        System.out.println(stringBuilder.toString());
-                    }
-                    hasAdd = false;
+                hasAdd = false;
             }else {
-                    if ((str.charAt(6) == "+".charAt(0) || str.charAt(6) == "-".charAt(0)) && (str.charAt(10) == "*".charAt(0) || str.charAt(10) == "/".charAt(0))){
-                        StringBuilder stringBuilder = new StringBuilder(str);
-                        stringBuilder.insert(0,"(");
-                        stringBuilder.insert(11,")");
-                        System.out.println(stringBuilder.toString());
-                    }
+                if ((str.charAt(6) == "+".charAt(0) || str.charAt(6) == "-".charAt(0)) && (str.charAt(10) == "*".charAt(0) || str.charAt(10) == "/".charAt(0))){
+                    StringBuilder stringBuilder = new StringBuilder(str);
+                    stringBuilder.insert(0,"(");
+                    stringBuilder.insert(11,")");
+                    System.out.println(stringBuilder.toString());
+                    allList.add(stringBuilder.toString());
+                }else {
+                    allList.add(str);
                 }
+            }
         }
+        String output = "";
+        for (int i = 0; i < allList.size(); i ++ ){
+            output = output + allList.get(i) + "\n";
+        }
+        textView.setText(output);
     }
 
     /**
@@ -170,6 +238,7 @@ public class MainActivity extends AppCompatActivity {
                     resultSet.add(buildString(nums, operators, targetNumber));// 如果计算后的结果等于想要的结果，就存放到集合中
             }
         if (resultSet.isEmpty())
+
             throw new Exception("给定的数字：" + Arrays.toString(numbers)
                     + "不能通过加减乘除运算得到结果：" + targetNumber);
         return resultSet;
@@ -297,6 +366,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-    };
 }
+
 
